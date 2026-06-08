@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flynance — SOA Builder Demo</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+  :root {
+    --navy: #0d1b2a;
+    --navy2: #111f30;
+    --navy3: #1a2e42;
+    --cream: #f0ece4;
+    --gold: #c8a45a;
+    --gold2: #e8c97a;
+    --muted: #a09880;
+    --rule: #1e3148;
+    --dim: #3d5a73;
+    --green: #22c55e;
+    --blue: #1e3a8a;
+    --text: #1a1a1a;
+    --light-bg: #f0ece4;
+    --light-card: #ffffff;
+    --light-border: #e0dbd2;
+    --light-muted: #7a6e62;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--navy);
+    font-family: 'DM Sans', sans-serif;
+    overflow: hidden;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ── SCENE WRAPPER ── */
+  .scene {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+  }
+
+  /* ── SLIDE BASE ── */
+  .slide {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.6s ease;
+  }
+  .slide.active {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  /* ── INTRO SLIDE ── */
+  #slide-intro {
+    background: var(--navy);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+  }
+  .intro-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 48px;
+    color: var(--gold);
+    letter-spacing: 4px;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: none;
+  }
+  .intro-tag {
+    font-size: 13px;
+    color: var(--muted);
+    letter-spacing: 3px;
+    margin-top: 10px;
+    opacity: 0;
+  }
+  .intro-headline {
+    font-family: 'Playfair Display', serif;
+    font-size: 32px;
+    color: var(--cream);
+    text-align: center;
+    margin-top: 40px;
+    opacity: 0;
+    line-height: 1.3;
+  }
+  .intro-headline span { color: var(--gold); }
+  .intro-sub {
+    font-size: 14px;
+    color: var(--muted);
+    margin-top: 16px;
+    opacity: 0;
+    letter-spacing: 0.5px;
+  }
+  .intro-divider {
+    width: 60px;
+    height: 2px;
+    background: var(--gold);
+    margin: 28px auto;
+    opacity: 0;
+  }
+  .play-btn { display: flex; align-items: center; gap: 8px; }
+
+  /* progress dots */
+  .progress-dots { display: none; }
+
+  /* ── APP CHROME ── */
+  .app-chrome {
+    background: var(--light-bg);
+    border-radius: 0;
+    overflow: hidden;
+    box-shadow: none;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* topbar */
+  .topbar {
+    height: 44px;
+    background: #fff;
+    border-bottom: 1px solid var(--light-border);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .topbar-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .dot-red { background: #ff5f57; }
+  .dot-yellow { background: #febc2e; }
+  .dot-green { background: #28c840; }
+  .topbar-path {
+    margin-left: 16px;
+    font-size: 12px;
+    color: var(--light-muted);
+  }
+  .topbar-path span { color: var(--text); font-weight: 500; }
+
+  /* layout */
+  .app-body {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* sidebar */
+  .sidebar {
+    width: 200px;
+    padding: 28px 16px;
+    border-right: 1px solid var(--light-border);
+    background: #faf8f5;
+    flex-shrink: 0;
+  }
+  .sidebar-label {
+    font-size: 9px;
+    font-weight: 600;
+    color: var(--light-muted);
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+  }
+  .sidebar-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 10px;
+    border-radius: 8px;
+    margin-bottom: 4px;
+    transition: background 0.3s;
+  }
+  .sidebar-step.active-step { background: #ede9e0; }
+  .step-num {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: #ddd;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 600; color: #888;
+    flex-shrink: 0;
+    transition: background 0.3s, color 0.3s;
+  }
+  .step-num.done { background: var(--navy); color: #fff; }
+  .step-num.current { background: var(--navy); color: #fff; }
+  .step-text { font-size: 12px; }
+  .step-title { font-weight: 600; color: var(--text); font-size: 12px; }
+  .step-sub { font-size: 10px; color: var(--light-muted); margin-top: 1px; }
+
+  /* main content */
+  .main-content {
+    flex: 1;
+    padding: 28px 32px;
+    overflow-y: auto;
+    position: relative;
+  }
+
+  .step-eyebrow {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: var(--light-muted);
+    margin-bottom: 6px;
+  }
+  .step-headline {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    color: var(--text);
+    margin-bottom: 4px;
+    line-height: 1.2;
+  }
+  .step-desc {
+    font-size: 12px;
+    color: var(--light-muted);
+    margin-bottom: 24px;
+  }
+
+  /* ── STEP 1 CONTENT ── */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+  .upload-card {
+    border: 1.5px solid var(--light-border);
+    border-radius: 10px;
+    padding: 16px;
+    background: #fff;
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+  .upload-card.selected {
+    border-color: var(--navy);
+    box-shadow: 0 0 0 3px rgba(13,27,42,0.08);
+  }
+  .card-title-row {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 10px;
+  }
+  .card-icon {
+    width: 28px; height: 28px; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+  }
+  .card-title { font-size: 13px; font-weight: 600; color: var(--text); }
+  .card-sub { font-size: 10px; color: var(--light-muted); margin-top: 1px; }
+
+  .drop-zone {
+    border: 1.5px dashed #ccc;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    font-size: 11px;
+    color: var(--light-muted);
+    margin-top: 8px;
+  }
+  .drop-zone .upload-icon { font-size: 18px; margin-bottom: 6px; }
+
+  .al-search-btn {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--light-border);
+    border-radius: 8px;
+    background: #fff;
+    font-size: 12px;
+    color: var(--text);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    margin-top: 8px;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  /* client pill selected */
+  .client-pill {
+    display: flex; align-items: center; gap: 8px;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin-top: 8px;
+    font-size: 12px;
+    color: #166534;
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity 0.4s, transform 0.4s;
+  }
+  .client-pill.show { opacity: 1; transform: translateY(0); }
+
+  /* supporting docs */
+  .section-label {
+    font-size: 10px; font-weight: 600; letter-spacing: 2px;
+    color: var(--light-muted); margin: 20px 0 10px;
+  }
+  .doc-list { display: flex; flex-direction: column; gap: 6px; }
+  .doc-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 12px;
+    background: #fff;
+    border: 1px solid var(--light-border);
+    border-radius: 7px;
+    font-size: 11px;
+    color: var(--text);
+    opacity: 0;
+    transform: translateX(-8px);
+    transition: opacity 0.35s, transform 0.35s;
+  }
+  .doc-item.show { opacity: 1; transform: translateX(0); }
+  .doc-size { color: var(--light-muted); font-size: 10px; }
+
+  .generate-btn {
+    margin-top: 22px;
+    padding: 13px 32px;
+    background: var(--navy);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.5s, transform 0.2s;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .generate-btn.show { opacity: 1; }
+  .generate-btn:hover { transform: translateY(-1px); }
+
+  /* ── STEP 2 CONTENT: GENERATING ── */
+  .progress-block {
+    background: #fff;
+    border: 1px solid var(--light-border);
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-bottom: 10px;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.4s, transform 0.4s;
+  }
+  .progress-block.show { opacity: 1; transform: translateY(0); }
+
+  .progress-row {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .progress-title {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px; font-weight: 500; color: var(--text);
+  }
+  .progress-time { font-size: 11px; color: var(--light-muted); }
+
+  .progress-bar-bg {
+    background: #e5e7eb;
+    border-radius: 100px;
+    height: 5px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    border-radius: 100px;
+    width: 0%;
+    transition: width 1.5s ease;
+  }
+  .fill-green { background: var(--green); }
+  .fill-navy { background: var(--navy); }
+
+  .progress-sub {
+    font-size: 10px; color: var(--light-muted); margin-top: 6px;
+  }
+
+  .status-icon { font-size: 16px; }
+
+  .overall-row {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 6px;
+  }
+  .overall-label { font-size: 12px; font-weight: 600; color: var(--text); }
+  .overall-pct { font-size: 12px; font-weight: 600; color: var(--navy); }
+
+  /* ── STEP 3: RECOMMENDATIONS ── */
+  .rec-card {
+    background: #fff;
+    border: 1px solid var(--light-border);
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin-bottom: 10px;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.4s, transform 0.4s;
+  }
+  .rec-card.show { opacity: 1; transform: translateY(0); }
+  .rec-num { font-size: 11px; font-weight: 600; color: var(--gold); margin-bottom: 4px; }
+  .rec-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+  .rec-body { font-size: 11px; color: var(--light-muted); line-height: 1.6; }
+  .rec-tags { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+  .rec-tag {
+    font-size: 10px; padding: 3px 8px;
+    background: #f0ece4; color: var(--navy);
+    border-radius: 100px; font-weight: 500;
+  }
+
+  .compliance-banner {
+    display: flex; align-items: center; gap: 10px;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 12px;
+    color: #166534;
+    margin-top: 6px;
+    opacity: 0;
+    transition: opacity 0.5s;
+  }
+  .compliance-banner.show { opacity: 1; }
+
+  .export-row {
+    display: flex; gap: 10px; margin-top: 16px;
+    opacity: 0; transition: opacity 0.5s;
+  }
+  .export-row.show { opacity: 1; }
+  .export-btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 12px; font-weight: 600;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    border: none;
+  }
+  .export-pdf { background: var(--navy); color: #fff; }
+  .export-word { background: var(--light-bg); color: var(--navy); border: 1.5px solid var(--light-border); }
+
+  /* ── OUTRO SLIDE ── */
+  #slide-outro {
+    background: var(--navy);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    text-align: center;
+  }
+
+  /* ── MODAL OVERLAY ── */
+  .modal-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 12px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+    z-index: 10;
+  }
+  .modal-overlay.show { opacity: 1; pointer-events: all; }
+  .modal-box {
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px;
+    width: 360px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+  }
+  .modal-title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .modal-sub { font-size: 11px; color: var(--light-muted); margin-bottom: 14px; }
+  .modal-search {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1px solid var(--light-border);
+    border-radius: 8px;
+    font-size: 12px;
+    font-family: 'DM Sans', sans-serif;
+    margin-bottom: 10px;
+    outline: none;
+    color: var(--text);
+  }
+  .modal-count { font-size: 10px; color: var(--light-muted); margin-bottom: 8px; }
+  .modal-client-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 9px 10px;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .modal-client-row:hover { background: #f5f3ef; }
+  .modal-client-row.selected-row { background: #f0fdf4; }
+  .client-info .client-name { font-size: 12px; font-weight: 500; color: var(--text); }
+  .client-info .client-date { font-size: 10px; color: var(--light-muted); }
+  .client-id { font-size: 10px; color: var(--light-muted); }
+
+  /* ── PROGRESS INDICATOR ── */
+  .progress-dots {
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex; gap: 8px; align-items: center;
+  }
+  .dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.25);
+    transition: background 0.3s, transform 0.3s;
+  }
+  .dot.active { background: var(--gold); transform: scale(1.3); }
+
+  /* ── UTILITY ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  @keyframes pulse {
+    0%,100% { opacity: 1; }
+    50% { opacity: 0.6; }
+  }
+
+  .typing-cursor::after {
+    content: '|';
+    animation: pulse 0.8s infinite;
+    color: var(--gold);
+  }
+
+  /* skip btn */
+  .skip-btn { display: none; }
+
+  /* ticker */
+  .ticker {
+    font-size: 11px; color: var(--muted);
+    position: fixed; bottom: 60px; left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    letter-spacing: 0.5px;
+  }
+
+  /* scrollbar */
+  .main-content::-webkit-scrollbar { width: 4px; }
+  .main-content::-webkit-scrollbar-track { background: transparent; }
+  .main-content::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<!-- ── FLYNANCE CORNER LOGO ── -->
+<a href="https://flynance.com.au" target="_blank" style="
+  position: fixed;
+  top: 20px;
+  left: 28px;
+  font-family: 'Playfair Display', serif;
+  font-size: 18px;
+  color: var(--gold);
+  letter-spacing: 3px;
+  text-decoration: none;
+  z-index: 999;
+  opacity: 0.85;
+  transition: opacity 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.85'">
+  ✦ FLYNANCE
+</a>
+
+<!-- ── PROGRESS DOTS ── -->
+<div class="progress-dots" id="dots">
+  <div class="dot active" id="d0"></div>
+  <div class="dot" id="d1"></div>
+  <div class="dot" id="d2"></div>
+  <div class="dot" id="d3"></div>
+  <div class="dot" id="d4"></div>
+</div>
+
+<button class="skip-btn" id="skipBtn" onclick="skipToNext()">skip ›</button>
+
+<div class="scene">
+
+  <!-- ══ SLIDE 0: INTRO ══ -->
+  <div class="slide active" id="slide-intro">
+    <div class="intro-logo" id="iLogo">FLYNANCE</div>
+    <div class="intro-tag" id="iTag">THE AI WORKSPACE FOR AUSTRALIAN FINANCIAL PROFESSIONALS</div>
+    <div class="intro-divider" id="iDiv"></div>
+    <div class="intro-headline" id="iHead">From client data to<br>compliant SOA — <span>in minutes.</span></div>
+    <div class="intro-sub" id="iSub">Watch how it works →</div>
+    <button class="play-btn" id="watchBtn" onclick="startDemo()" style="opacity:1;display:flex;align-items:center;gap:8px;">▶ &nbsp;Watch Demo</button>
+  </div>
+
+  <!-- ══ SLIDE 1: GET STARTED ══ -->
+  <div class="slide" id="slide1">
+    <div class="app-chrome">
+      <div class="topbar">
+        <div class="topbar-dot dot-red"></div>
+        <div class="topbar-dot dot-yellow"></div>
+        <div class="topbar-dot dot-green"></div>
+        <div class="topbar-path">Financial Planner / <span>SOA Builder</span></div>
+      </div>
+      <div class="app-body">
+        <div class="sidebar">
+          <div class="sidebar-label">SOA BUILDER</div>
+          <div class="sidebar-step active-step" id="sb1">
+            <div class="step-num current" id="sn1">1</div>
+            <div class="step-text">
+              <div class="step-title">Get Started</div>
+              <div class="step-sub">Upload client data</div>
+            </div>
+          </div>
+          <div class="sidebar-step" id="sb2">
+            <div class="step-num" id="sn2">2</div>
+            <div class="step-text">
+              <div class="step-title">Generate SOA</div>
+              <div class="step-sub">AI drafts each section</div>
+            </div>
+          </div>
+          <div class="sidebar-step" id="sb3">
+            <div class="step-num" id="sn3">3</div>
+            <div class="step-text">
+              <div class="step-title">Preview &amp; Export</div>
+              <div class="step-sub">Review, edit, download</div>
+            </div>
+          </div>
+        </div>
+        <div class="main-content">
+          <div class="step-eyebrow">STEP 1 OF 3 · GET STARTED</div>
+          <div class="step-headline">Provide client data</div>
+          <div class="step-desc">Choose how to provide your client data, upload solution documents, then generate your SOA.</div>
+
+          <div class="section-label">STEP 1 — CLIENT DATA</div>
+          <div class="two-col">
+            <div class="upload-card" id="uploadCard">
+              <div class="card-title-row">
+                <div class="card-icon" style="background:#eff6ff">📄</div>
+                <div>
+                  <div class="card-title">Upload Fact Finder</div>
+                  <div class="card-sub">Upload the client's fact finder document</div>
+                </div>
+              </div>
+              <div class="drop-zone">
+                <div class="upload-icon">⬆</div>
+                <div>Drop files here or click to browse</div>
+                <div style="font-size:9px;margin-top:3px;">PDF, Word, Excel, CSV — max 25 MB</div>
+              </div>
+            </div>
+            <div class="upload-card selected" id="alCard">
+              <div class="card-title-row">
+                <div class="card-icon" style="background:#f0fdf4">🗂</div>
+                <div>
+                  <div class="card-title">Import from AdviserLogic</div>
+                  <div class="card-sub">Pull client data directly from your CRM</div>
+                </div>
+              </div>
+              <div class="client-pill" id="clientPill">
+                <span>✓</span>
+                <span id="clientName">Jane &amp; John Smith</span>
+                <span style="margin-left:auto;font-size:10px;color:#166534;opacity:0.7">ADL8378447</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="section-label">STEP 2 — SUPPORTING DOCUMENTS</div>
+          <div class="doc-list">
+            <div class="doc-item" id="doc1">
+              <span>📄 Paraplanning_Notes.docx</span><span class="doc-size">24.5 KB</span>
+            </div>
+            <div class="doc-item" id="doc2">
+              <span>📄 Risk_Profile_Questionnaire.docx</span><span class="doc-size">30.3 KB</span>
+            </div>
+            <div class="doc-item" id="doc3">
+              <span>📄 Revenue_Statement.docx</span><span class="doc-size">177.0 KB</span>
+            </div>
+            <div class="doc-item" id="doc4">
+              <span>📄 Smith_FNA_1.docx</span><span class="doc-size">20.4 KB</span>
+            </div>
+          </div>
+
+          <button class="generate-btn" id="genBtn" onclick="goToStep2()">
+            ✦ &nbsp;Generate SOA
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- AdviserLogic modal -->
+    <div class="modal-overlay" id="alModal">
+      <div class="modal-box">
+        <div class="modal-title">Select Client from AdviserLogic</div>
+        <div class="modal-sub">Search for a client and optionally select a second client.</div>
+        <input class="modal-search typing-cursor" id="modalSearch" placeholder="Search by name, email, or client ID..." readonly>
+        <div class="modal-count" id="modalCount">415 clients in AdviserLogic</div>
+        <div id="clientList">
+          <div class="modal-client-row" id="cr1">
+            <div class="client-info">
+              <div class="client-name">👤 &nbsp;Jane Smith</div>
+              <div class="client-date">📅 07/2024</div>
+            </div>
+            <div class="client-id">ADL5621643</div>
+          </div>
+          <div class="modal-client-row selected-row" id="cr2">
+            <div class="client-info">
+              <div class="client-name">👤 &nbsp;John Smith</div>
+              <div class="client-date">📅 07/2024</div>
+            </div>
+            <div class="client-id">ADL8378447</div>
+          </div>
+          <div class="modal-client-row" id="cr3">
+            <div class="client-info">
+              <div class="client-name">👤 &nbsp;Mrs V.</div>
+              <div class="client-date">📅 03/2024</div>
+            </div>
+            <div class="client-id">18461</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SLIDE 2: GENERATING ══ -->
+  <div class="slide" id="slide2">
+    <div class="app-chrome">
+      <div class="topbar">
+        <div class="topbar-dot dot-red"></div>
+        <div class="topbar-dot dot-yellow"></div>
+        <div class="topbar-dot dot-green"></div>
+        <div class="topbar-path">Financial Planner / <span>SOA Builder</span></div>
+      </div>
+      <div class="app-body">
+        <div class="sidebar">
+          <div class="sidebar-label">SOA BUILDER</div>
+          <div class="sidebar-step" id="sb1b">
+            <div class="step-num done">✓</div>
+            <div class="step-text">
+              <div class="step-title">Get Started</div>
+              <div class="step-sub">Upload client data</div>
+            </div>
+          </div>
+          <div class="sidebar-step active-step" id="sb2b">
+            <div class="step-num current">2</div>
+            <div class="step-text">
+              <div class="step-title">Generate SOA</div>
+              <div class="step-sub">AI drafts each section</div>
+            </div>
+          </div>
+          <div class="sidebar-step" id="sb3b">
+            <div class="step-num" id="sn3b">3</div>
+            <div class="step-text">
+              <div class="step-title">Preview &amp; Export</div>
+              <div class="step-sub">Review, edit, download</div>
+            </div>
+          </div>
+        </div>
+        <div class="main-content">
+          <div class="step-eyebrow">STEP 2 OF 3 · GENERATE SOA</div>
+          <div class="step-headline">We're drafting your SOA</div>
+          <div class="step-desc">Sit tight — generation typically takes 15–20 minutes for a standard advice scope.</div>
+
+          <!-- Overall -->
+          <div class="progress-block show" id="pb0">
+            <div class="overall-row">
+              <div class="overall-label">Overall progress</div>
+              <div class="overall-pct" id="overallPct">0%</div>
+            </div>
+            <div class="progress-bar-bg">
+              <div class="progress-bar-fill fill-navy" id="overallBar"></div>
+            </div>
+          </div>
+
+          <!-- Step: AdviserLogic -->
+          <div class="progress-block" id="pb1">
+            <div class="progress-row">
+              <div class="progress-title">
+                <span class="status-icon" id="si1">⏳</span>
+                Fetching from AdviserLogic
+              </div>
+              <div class="progress-time" id="pt1"></div>
+            </div>
+            <div class="progress-bar-bg">
+              <div class="progress-bar-fill fill-green" id="bar1"></div>
+            </div>
+            <div class="progress-sub" id="ps1">Connecting to CRM...</div>
+          </div>
+
+          <!-- Step: Analysing -->
+          <div class="progress-block" id="pb2">
+            <div class="progress-row">
+              <div class="progress-title">
+                <span class="status-icon" id="si2">○</span>
+                Analysing solutions
+              </div>
+              <div class="progress-time" id="pt2"></div>
+            </div>
+            <div class="progress-bar-bg">
+              <div class="progress-bar-fill fill-green" id="bar2"></div>
+            </div>
+            <div class="progress-sub" id="ps2">Waiting...</div>
+          </div>
+
+          <!-- Step: Generating SOA -->
+          <div class="progress-block" id="pb3">
+            <div class="progress-row">
+              <div class="progress-title">
+                <span class="status-icon" id="si3">○</span>
+                Generating SOA
+              </div>
+              <div class="progress-time" id="pt3"></div>
+            </div>
+            <div class="progress-bar-bg">
+              <div class="progress-bar-fill fill-green" id="bar3"></div>
+            </div>
+            <div class="progress-sub" id="ps3">Waiting...</div>
+          </div>
+
+          <!-- Step: Compliance -->
+          <div class="progress-block" id="pb4">
+            <div class="progress-row">
+              <div class="progress-title">
+                <span class="status-icon" id="si4">○</span>
+                Compliance Review
+              </div>
+              <div class="progress-time" id="pt4"></div>
+            </div>
+            <div class="progress-bar-bg">
+              <div class="progress-bar-fill fill-green" id="bar4"></div>
+            </div>
+            <div class="progress-sub" id="ps4">Waiting...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SLIDE 3: OUTPUT ══ -->
+  <div class="slide" id="slide3">
+    <div class="app-chrome">
+      <div class="topbar">
+        <div class="topbar-dot dot-red"></div>
+        <div class="topbar-dot dot-yellow"></div>
+        <div class="topbar-dot dot-green"></div>
+        <div class="topbar-path">Financial Planner / <span>SOA Builder</span></div>
+      </div>
+      <div class="app-body">
+        <div class="sidebar">
+          <div class="sidebar-label">SOA BUILDER</div>
+          <div class="sidebar-step">
+            <div class="step-num done">✓</div>
+            <div class="step-text"><div class="step-title">Get Started</div><div class="step-sub">Upload client data</div></div>
+          </div>
+          <div class="sidebar-step">
+            <div class="step-num done">✓</div>
+            <div class="step-text"><div class="step-title">Generate SOA</div><div class="step-sub">AI drafts each section</div></div>
+          </div>
+          <div class="sidebar-step active-step">
+            <div class="step-num current">3</div>
+            <div class="step-text"><div class="step-title">Preview &amp; Export</div><div class="step-sub">Review, edit, download</div></div>
+          </div>
+        </div>
+        <div class="main-content">
+          <div class="step-eyebrow">STEP 3 OF 3 · PREVIEW &amp; EXPORT</div>
+          <div class="step-headline">SOA Ready ✦</div>
+          <div class="step-desc">8 recommendations identified across 6 advice areas. Review below, then export.</div>
+
+          <div class="rec-card" id="rec1">
+            <div class="rec-num">RECOMMENDATION 1</div>
+            <div class="rec-title">Superannuation — Concessional Contribution Maximisation (Both Clients)</div>
+            <div class="rec-body">Maximise concessional contributions for both Jane and John in FY2026–27, utilising carry-forward unused concessional contribution caps where available, subject to TSB eligibility...</div>
+            <div class="rec-tags">
+              <span class="rec-tag">Superannuation</span>
+              <span class="rec-tag">Both Clients</span>
+              <span class="rec-tag">FY2026–27</span>
+            </div>
+          </div>
+
+          <div class="rec-card" id="rec2">
+            <div class="rec-num">RECOMMENDATION 2</div>
+            <div class="rec-title">Superannuation — Investment Option Review (Both Clients)</div>
+            <div class="rec-body">Review and realign investment options within Netwealth super accounts to match confirmed risk profiles — Kym to High Growth, James to Growth. Current holdings are a mix of Russell managed funds...</div>
+            <div class="rec-tags">
+              <span class="rec-tag">Investment Planning</span>
+              <span class="rec-tag">Risk Profile</span>
+            </div>
+          </div>
+
+          <div class="compliance-banner" id="compBanner">
+            <span style="font-size:18px">✅</span>
+            <span><strong>Compliance check passed</strong> — Best Interest Duty, fee disclosure, AFCA references and conflicts of interest reviewed.</span>
+          </div>
+
+          <div class="export-row" id="exportRow">
+            <button class="export-btn export-pdf">⬇ &nbsp;Export PDF</button>
+            <button class="export-btn export-word">⬇ &nbsp;Export Word</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SLIDE 4: OUTRO ══ -->
+  <div class="slide" id="slide-outro">
+    <div class="intro-logo" id="oLogo" style="opacity:0">FLYNANCE</div>
+    <div class="intro-divider" id="oDiv" style="opacity:0;margin:20px auto"></div>
+    <div class="intro-headline" id="oHead" style="opacity:0;font-size:26px">
+      Compliant SOA. <span>Under 5 minutes.</span><br>Around $20.
+    </div>
+    <div class="intro-sub" id="oSub" style="opacity:0;margin-top:14px">Beta access available now — no seat fees, no lock-in.</div>
+    <div style="display:flex;gap:14px;margin-top:28px;align-items:center;">
+      <button class="play-btn" id="oBtn" style="opacity:0;margin-top:0" onclick="window.open('https://flynance.com.au','_blank')">
+        Visit flynance.com.au →
+      </button>
+      <button class="play-btn" id="rewatchBtn" style="opacity:0;pointer-events:none;margin-top:0;background:transparent;border:1.5px solid var(--gold);color:var(--gold);transition:opacity 0.6s" onclick="rewatchDemo()">
+        ↺ &nbsp;Watch again
+      </button>
+    </div>
+  </div>
+
+</div><!-- /scene -->
+
+<script>
+  let currentSlide = 0;
+  const slides = ['slide-intro','slide1','slide2','slide3','slide-outro'];
+  let autoTimer = null;
+  let demoRunning = false;
+
+  function setDot(n) {
+    document.querySelectorAll('.dot').forEach((d,i) => d.classList.toggle('active', i===n));
+  }
+
+  function showSlide(n) {
+    document.querySelectorAll('.slide').forEach(s => s.classList.remove('active'));
+    document.getElementById(slides[n]).classList.add('active');
+    currentSlide = n;
+    setDot(n);
+  }
+
+  function skipToNext() {
+    clearTimeout(autoTimer);
+    if(currentSlide < slides.length - 1) {
+      showSlide(currentSlide + 1);
+      if(currentSlide === 1) animateStep1();
+      if(currentSlide === 2) animateStep2();
+      if(currentSlide === 3) animateStep3();
+      if(currentSlide === 4) animateOutro();
+    }
+  }
+
+  // ── INTRO — static placeholder, all visible on load ──
+  window.addEventListener('load', () => {
+    ['iLogo','iTag','iDiv','iHead','iSub','watchBtn'].forEach(id => {
+      const el = document.getElementById(id);
+      if(el) {
+        el.style.opacity = '1';
+        el.style.transform = 'translateY(0)';
+        el.style.animation = 'none';
+      }
+    });
+  });
+
+  function startDemo() {
+    demoRunning = true;
+    showSlide(1);
+    setTimeout(animateStep1, 200);
+  }
+
+  // ── STEP 1 ANIMATION ──
+  function animateStep1() {
+    // Show modal after 600ms
+    setTimeout(() => {
+      document.getElementById('alModal').classList.add('show');
+      // Type search
+      let txt = '';
+      const target = 'Smith';
+      const input = document.getElementById('modalSearch');
+      input.classList.add('typing-cursor');
+      let i = 0;
+      const typing = setInterval(() => {
+        if(i < target.length) {
+          txt += target[i]; i++;
+          input.placeholder = txt;
+        } else {
+          clearInterval(typing);
+          input.classList.remove('typing-cursor');
+          // Highlight row after typing
+          setTimeout(() => {
+            document.getElementById('cr2').style.background = '#f0fdf4';
+            // Close modal
+            setTimeout(() => {
+              document.getElementById('alModal').classList.remove('show');
+              // Show client pill
+              setTimeout(() => {
+                document.getElementById('clientPill').classList.add('show');
+                // Show docs
+                ['doc1','doc2','doc3','doc4'].forEach((id, idx) => {
+                  setTimeout(() => {
+                    document.getElementById(id).classList.add('show');
+                  }, idx * 200);
+                });
+                // Show generate btn
+                setTimeout(() => {
+                  document.getElementById('genBtn').classList.add('show');
+                  // Auto advance
+                  autoTimer = setTimeout(() => goToStep2(), 1800);
+                }, 1200);
+              }, 300);
+            }, 1200);
+          }, 600);
+        }
+      }, 120);
+    }, 600);
+  }
+
+  function goToStep2() {
+    clearTimeout(autoTimer);
+    showSlide(2);
+    setTimeout(animateStep2, 300);
+  }
+
+  // ── STEP 2 ANIMATION ──
+  function animateStep2() {
+    const steps = [
+      { pb:'pb1', bar:'bar1', si:'si1', pt:'pt1', ps:'ps1',
+        startMsg:'Importing client data...', doneMsg:'Imported data for Jane & John Smith',
+        doneTime:'3s', duration:1200, overall:25 },
+      { pb:'pb2', bar:'bar2', si:'si2', pt:'pt2', ps:'ps2',
+        startMsg:'Reading supporting documents...', doneMsg:'6 advice areas, 8 recommendations identified',
+        doneTime:'4m 13s', duration:2000, overall:55 },
+      { pb:'pb3', bar:'bar3', si:'si3', pt:'pt3', ps:'ps3',
+        startMsg:'Drafting 17 sections...', doneMsg:'Statement of Advice drafted',
+        doneTime:'11m 42s', duration:2200, overall:80 },
+      { pb:'pb4', bar:'bar4', si:'si4', pt:'pt4', ps:'ps4',
+        startMsg:'Checking Best Interest Duty...', doneMsg:'All compliance checks passed ✓',
+        doneTime:'2m 18s', duration:1600, overall:100 },
+    ];
+
+    let delay = 0;
+    steps.forEach((step, idx) => {
+      setTimeout(() => {
+        const pb = document.getElementById(step.pb);
+        pb.classList.add('show');
+        document.getElementById(step.si).textContent = '⏳';
+        document.getElementById(step.ps).textContent = step.startMsg;
+
+        // Animate bar
+        setTimeout(() => {
+          document.getElementById(step.bar).style.width = '100%';
+          // Animate overall bar
+          animateOverall(step.overall);
+        }, 200);
+
+        setTimeout(() => {
+          document.getElementById(step.si).textContent = '✅';
+          document.getElementById(step.pt).textContent = '⏱ ' + step.doneTime;
+          document.getElementById(step.ps).textContent = step.doneMsg;
+
+          if(idx === steps.length - 1) {
+            // All done — go to step 3
+            autoTimer = setTimeout(() => {
+              showSlide(3);
+              setTimeout(animateStep3, 300);
+            }, 1200);
+          }
+        }, step.duration);
+
+      }, delay);
+      delay += step.duration + 400;
+    });
+  }
+
+  function animateOverall(pct) {
+    document.getElementById('overallBar').style.width = pct + '%';
+    document.getElementById('overallBar').style.transition = 'width 1s ease';
+    // Count up
+    const el = document.getElementById('overallPct');
+    const current = parseInt(el.textContent) || 0;
+    let n = current;
+    const interval = setInterval(() => {
+      if(n >= pct) { clearInterval(interval); return; }
+      n++;
+      el.textContent = n + '%';
+    }, 1000 / (pct - current));
+  }
+
+  // ── STEP 3 ANIMATION ──
+  function animateStep3() {
+    setTimeout(() => document.getElementById('rec1').classList.add('show'), 200);
+    setTimeout(() => document.getElementById('rec2').classList.add('show'), 600);
+    setTimeout(() => document.getElementById('compBanner').classList.add('show'), 1100);
+    setTimeout(() => document.getElementById('exportRow').classList.add('show'), 1500);
+    autoTimer = setTimeout(() => {
+      showSlide(4);
+      animateOutro();
+    }, 4500);
+  }
+
+  function rewatchDemo() {
+    // Reset all animated elements
+    ['rec1','rec2','compBanner','exportRow'].forEach(id => {
+      const el = document.getElementById(id);
+      if(el) el.classList.remove('show');
+    });
+    ['doc1','doc2','doc3','doc4'].forEach(id => {
+      const el = document.getElementById(id);
+      if(el) el.classList.remove('show');
+    });
+    document.getElementById('clientPill').classList.remove('show');
+    document.getElementById('genBtn').classList.remove('show');
+    document.getElementById('alModal').classList.remove('show');
+    document.getElementById('modalSearch').placeholder = 'Search by name, email, or client ID...';
+    // Reset progress bars
+    ['bar1','bar2','bar3','bar4','overallBar'].forEach(id => {
+      const el = document.getElementById(id);
+      if(el) { el.style.transition = 'none'; el.style.width = '0%'; }
+    });
+    ['pb1','pb2','pb3','pb4'].forEach(id => {
+      const el = document.getElementById(id);
+      if(el) el.classList.remove('show');
+    });
+    document.getElementById('overallPct').textContent = '0%';
+    // Reset rewatch button
+    document.getElementById('rewatchBtn').style.opacity = '0';
+    document.getElementById('rewatchBtn').style.pointerEvents = 'none';
+    // Reset outro elements
+    ['oLogo','oDiv','oHead','oSub','oBtn'].forEach(id => {
+      const el = document.getElementById(id);
+      if(el) { el.style.animation = 'none'; el.style.opacity = '0'; }
+    });
+    // Go back to static intro
+    showSlide(0);
+    ['iLogo','iTag','iDiv','iHead','iSub','watchBtn'].forEach(id => {
+      const el = document.getElementById(id);
+      if(el) { el.style.opacity = '1'; el.style.transform = 'translateY(0)'; el.style.animation = 'none'; }
+    });
+  }
+  function animateOutro() {
+    const els = [
+      {id:'oLogo', delay:300},
+      {id:'oDiv', delay:600},
+      {id:'oHead', delay:900},
+      {id:'oSub', delay:1300},
+      {id:'oBtn', delay:1700},
+    ];
+    els.forEach(({id, delay}) => {
+      setTimeout(() => {
+        const el = document.getElementById(id);
+        el.style.animation = 'fadeUp 0.7s ease forwards';
+      }, delay);
+    });
+    // Show rewatch button after outro
+    setTimeout(() => {
+      document.getElementById('rewatchBtn').style.opacity = '1';
+      document.getElementById('rewatchBtn').style.pointerEvents = 'all';
+    }, 2200);
+  }
+</script>
+</body>
+</html>
