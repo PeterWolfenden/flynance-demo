@@ -29,7 +29,7 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   body {
-    background: var(--navy);
+    background: #0d1b2a;
     font-family: 'DM Sans', sans-serif;
     overflow: hidden;
     width: 100vw;
@@ -39,11 +39,59 @@
     justify-content: center;
   }
 
+  /* ── DEMO MODAL ── */
+  .demo-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.3s ease;
+  }
+  .demo-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+  .demo-modal {
+    position: relative;
+    width: calc(100% - 48px);
+    max-width: 960px;
+    height: min(620px, calc(100vh - 48px));
+    max-height: 620px;
+    border-radius: 16px;
+    box-shadow: 0 32px 80px rgba(0, 0, 0, 0.6);
+    overflow: hidden;
+  }
+  .modal-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    z-index: 200;
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--cream);
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, color 0.2s;
+  }
+  .modal-close:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+  }
+
   /* ── SCENE WRAPPER ── */
   .scene {
     position: relative;
-    width: 100vw;
-    height: 100vh;
+    width: 100%;
+    height: 100%;
   }
 
   /* ── SLIDE BASE ── */
@@ -69,13 +117,14 @@
     gap: 0;
   }
   .intro-logo {
-    font-family: 'Playfair Display', serif;
-    font-size: 48px;
-    color: var(--gold);
-    letter-spacing: 4px;
     opacity: 0;
     transform: translateY(20px);
     animation: none;
+  }
+  .logo-img {
+    display: block;
+    object-fit: contain;
+    filter: brightness(0) saturate(100%) invert(71%) sepia(33%) saturate(537%) hue-rotate(1deg) brightness(95%) contrast(88%);
   }
   .intro-tag {
     font-size: 13px;
@@ -109,6 +158,32 @@
     opacity: 0;
   }
   .play-btn { display: flex; align-items: center; gap: 8px; }
+
+  .outro-btn {
+    appearance: none;
+    -webkit-appearance: none;
+    margin: 0;
+    padding: 14px 36px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: 100px;
+    cursor: pointer;
+    letter-spacing: 0.3px;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: opacity 0.6s;
+    box-shadow: none;
+    outline: none;
+  }
+  .outro-btn-outline {
+    background: transparent;
+    color: #c8a45a;
+    border: 1.5px solid #c8a45a;
+  }
 
   /* progress dots */
   .progress-dots { display: none; }
@@ -431,6 +506,185 @@
   .export-pdf { background: var(--navy); color: #fff; }
   .export-word { background: var(--light-bg); color: var(--navy); border: 1.5px solid var(--light-border); }
 
+  /* ── STEP 4: EDIT / PREVIEW ── */
+  .edit-main {
+    background: var(--light-bg);
+    padding: 18px 24px 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .edit-main .step-eyebrow { margin-bottom: 4px; }
+  .edit-main .step-headline { font-size: 24px; margin-bottom: 2px; }
+  .edit-main .step-desc { margin-bottom: 12px; font-size: 11px; }
+  .edit-cards {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .soa-card {
+    background: #ffffff;
+    border: 1px solid var(--light-border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    position: relative;
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity 0.45s ease, transform 0.45s ease;
+    flex-shrink: 0;
+  }
+  .soa-card.show { opacity: 1; transform: translateY(0); }
+  .soa-section-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    color: var(--gold);
+    margin-bottom: 3px;
+  }
+  .soa-card-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+  .soa-card-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .soa-edited-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    font-size: 9px;
+    font-weight: 600;
+    color: var(--navy);
+    background: var(--gold);
+    padding: 3px 8px;
+    border-radius: 100px;
+    opacity: 0;
+    transform: scale(0.8);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .soa-edited-badge.show { opacity: 1; transform: scale(1); }
+  .edit-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 6px;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+  .edit-toolbar.show { opacity: 1; }
+  .toolbar-btn {
+    font-size: 11px;
+    padding: 4px 8px;
+    border: 1px solid var(--light-border);
+    border-radius: 4px;
+    background: #fff;
+    color: var(--navy);
+    font-family: 'DM Sans', sans-serif;
+    cursor: default;
+    line-height: 1;
+  }
+  .toolbar-sep {
+    width: 1px;
+    height: 14px;
+    background: var(--light-border);
+    margin: 0 2px;
+  }
+  .soa-edit-area {
+    background: #fafaf8;
+    border: 1px solid var(--gold);
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-size: 12px;
+    line-height: 1.7;
+    color: var(--text);
+    width: 100%;
+    box-shadow: 0 0 0 2px rgba(30, 58, 138, 0.12);
+  }
+  .soa-cursor {
+    display: inline-block;
+    width: 1px;
+    height: 13px;
+    background: var(--text);
+    margin-left: 1px;
+    vertical-align: text-bottom;
+    animation: cursorBlink 1s infinite;
+  }
+  @keyframes cursorBlink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+  }
+  .soa-preview-text {
+    font-size: 11px;
+    color: var(--light-muted);
+    line-height: 1.6;
+    position: relative;
+    max-height: 1.6em;
+    overflow: hidden;
+  }
+  .soa-preview-text::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 1.4em;
+    background: linear-gradient(transparent, #fff);
+  }
+  .click-edit-btn {
+    font-size: 10px;
+    color: var(--light-muted);
+    background: none;
+    border: none;
+    cursor: default;
+    font-family: 'DM Sans', sans-serif;
+    white-space: nowrap;
+    flex-shrink: 0;
+    padding: 0;
+  }
+  .soa-card .rec-tags { margin-top: 8px; }
+  .edit-bottom-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #fff;
+    border-top: 1px solid var(--light-border);
+    padding: 12px 32px;
+    margin: 10px -24px 0;
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 0.45s ease, transform 0.45s ease;
+    flex-shrink: 0;
+  }
+  .edit-bottom-bar.show { opacity: 1; transform: translateY(0); }
+  .edit-stats { font-size: 11px; color: var(--light-muted); }
+  .edit-export-btns { display: flex; gap: 10px; }
+  .export-pill {
+    padding: 10px 24px;
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+    cursor: default;
+  }
+  .export-pill-pdf {
+    background: var(--navy);
+    color: var(--cream);
+    border: none;
+  }
+  .export-pill-word {
+    background: var(--cream);
+    color: var(--navy);
+    border: 1px solid var(--navy);
+  }
+
   /* ── OUTRO SLIDE ── */
   #slide-outro {
     background: var(--navy);
@@ -491,11 +745,12 @@
 
   /* ── PROGRESS INDICATOR ── */
   .progress-dots {
-    position: fixed;
+    position: absolute;
     bottom: 28px;
     left: 50%;
     transform: translateX(-50%);
     display: flex; gap: 8px; align-items: center;
+    z-index: 50;
   }
   .dot {
     width: 7px; height: 7px;
@@ -531,10 +786,11 @@
   /* ticker */
   .ticker {
     font-size: 11px; color: var(--muted);
-    position: fixed; bottom: 60px; left: 50%;
+    position: absolute; bottom: 60px; left: 50%;
     transform: translateX(-50%);
     white-space: nowrap;
     letter-spacing: 0.5px;
+    z-index: 50;
   }
 
   /* scrollbar */
@@ -550,42 +806,44 @@
   position: fixed;
   top: 20px;
   left: 28px;
-  font-family: 'Playfair Display', serif;
-  font-size: 18px;
-  color: var(--gold);
-  letter-spacing: 3px;
   text-decoration: none;
   z-index: 999;
   opacity: 0.85;
   transition: opacity 0.2s;
   display: flex;
   align-items: center;
-  gap: 8px;
 " onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.85'">
-  ✦ FLYNANCE
+  <img src="logo.png" alt="Flynance" class="logo-img" style="height:40px;">
 </a>
 
-<!-- ── PROGRESS DOTS ── -->
-<div class="progress-dots" id="dots">
-  <div class="dot active" id="d0"></div>
-  <div class="dot" id="d1"></div>
-  <div class="dot" id="d2"></div>
-  <div class="dot" id="d3"></div>
-  <div class="dot" id="d4"></div>
-</div>
+<!-- ── DEMO MODAL ── -->
+<div class="demo-overlay" id="demoOverlay">
+  <div class="demo-modal" id="demoModal">
+    <button class="modal-close" id="modalClose" onclick="closeModal()" aria-label="Close demo">×</button>
 
-<button class="skip-btn" id="skipBtn" onclick="skipToNext()">skip ›</button>
+    <div class="progress-dots" id="dots">
+      <div class="dot active" id="d0"></div>
+      <div class="dot" id="d1"></div>
+      <div class="dot" id="d2"></div>
+      <div class="dot" id="d3"></div>
+      <div class="dot" id="d4"></div>
+      <div class="dot" id="d5"></div>
+    </div>
 
-<div class="scene">
+    <button class="skip-btn" id="skipBtn" onclick="skipToNext()">skip ›</button>
+
+    <div class="scene">
 
   <!-- ══ SLIDE 0: INTRO ══ -->
   <div class="slide active" id="slide-intro">
-    <div class="intro-logo" id="iLogo">FLYNANCE</div>
+    <div class="intro-logo" id="iLogo"><img src="logo.png" alt="Flynance" class="logo-img" style="height:60px;"></div>
     <div class="intro-tag" id="iTag">THE AI WORKSPACE FOR AUSTRALIAN FINANCIAL PROFESSIONALS</div>
     <div class="intro-divider" id="iDiv"></div>
     <div class="intro-headline" id="iHead">From client data to<br>compliant SOA — <span>in minutes.</span></div>
-    <div class="intro-sub" id="iSub">Watch how it works →</div>
-    <button class="play-btn" id="watchBtn" onclick="startDemo()" style="opacity:1;display:flex;align-items:center;gap:8px;">▶ &nbsp;Watch Demo</button>
+    <div class="intro-sub" id="iSub"></div>
+    <button class="play-btn" id="watchBtn" onclick="startDemo()" style="opacity:1;margin-top:32px;padding:16px 48px;background:var(--gold);color:var(--navy);border:none;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:16px;font-weight:600;cursor:pointer;letter-spacing:0.5px;">
+  ▶ &nbsp;Watch Demo
+</button>
   </div>
 
   <!-- ══ SLIDE 1: GET STARTED ══ -->
@@ -895,29 +1153,107 @@
     </div>
   </div>
 
-  <!-- ══ SLIDE 4: OUTRO ══ -->
+  <!-- ══ SLIDE 4: REVIEW & EDIT ══ -->
+  <div class="slide" id="slide4">
+    <div class="app-chrome">
+      <div class="topbar">
+        <div class="topbar-dot dot-red"></div>
+        <div class="topbar-dot dot-yellow"></div>
+        <div class="topbar-dot dot-green"></div>
+        <div class="topbar-path">Financial Planner / <span>SOA Builder</span></div>
+      </div>
+      <div class="app-body">
+        <div class="sidebar">
+          <div class="sidebar-label">SOA BUILDER</div>
+          <div class="sidebar-step">
+            <div class="step-num done">✓</div>
+            <div class="step-text"><div class="step-title">Get Started</div><div class="step-sub">Upload client data</div></div>
+          </div>
+          <div class="sidebar-step">
+            <div class="step-num done">✓</div>
+            <div class="step-text"><div class="step-title">Generate SOA</div><div class="step-sub">AI drafts each section</div></div>
+          </div>
+          <div class="sidebar-step active-step">
+            <div class="step-num done">✓</div>
+            <div class="step-text"><div class="step-title">Preview &amp; Export</div><div class="step-sub">Review, edit, download</div></div>
+          </div>
+        </div>
+        <div class="main-content edit-main">
+          <div class="step-eyebrow">STEP 3 OF 3 · PREVIEW &amp; EXPORT</div>
+          <div class="step-headline">Review &amp; Edit</div>
+          <div class="step-desc">Click any section to refine the AI draft before exporting.</div>
+
+          <div class="edit-cards">
+            <div class="soa-card" id="soaCard1">
+              <div class="soa-edited-badge" id="editedBadge">Edited</div>
+              <div class="soa-section-label">SECTION 4 — SUPERANNUATION</div>
+              <div class="soa-card-title">Concessional Contribution Maximisation</div>
+              <div class="edit-toolbar" id="editToolbar">
+                <span class="toolbar-btn">Bold</span>
+                <span class="toolbar-btn">Italic</span>
+                <span class="toolbar-btn">Underline</span>
+                <span class="toolbar-sep"></span>
+                <span class="toolbar-btn">Undo</span>
+                <span class="toolbar-btn">Save</span>
+              </div>
+              <div class="soa-edit-area">
+                Maximise concessional contributions for both Jane and John in FY2026–27, utilising carry-forward unused concessional contribution caps where available, subject to TSB eligibility. Current concessional contributions consist of SG totalling approximately $16,138 p.a.<span class="soa-cursor"></span>
+              </div>
+              <div class="rec-tags">
+                <span class="rec-tag">Superannuation</span>
+                <span class="rec-tag">Both Clients</span>
+                <span class="rec-tag">FY2026–27</span>
+              </div>
+            </div>
+
+            <div class="soa-card" id="soaCard2">
+              <div class="soa-card-header-row">
+                <div>
+                  <div class="soa-section-label">SECTION 5 — INSURANCE</div>
+                  <div class="soa-card-title">Personal Insurance Review</div>
+                </div>
+                <button class="click-edit-btn">Click to edit</button>
+              </div>
+              <div class="soa-preview-text">Review current life, TPD and income protection cover for both clients to ensure adequacy relative to outstanding mortgage and dependent obligations.</div>
+            </div>
+          </div>
+
+          <div class="edit-bottom-bar" id="editBottomBar">
+            <div class="edit-stats">17 sections generated · 2 edited</div>
+            <div class="edit-export-btns">
+              <button class="export-pill export-pill-pdf">Export PDF</button>
+              <button class="export-pill export-pill-word">Export Word</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SLIDE 5: OUTRO ══ -->
   <div class="slide" id="slide-outro">
-    <div class="intro-logo" id="oLogo" style="opacity:0">FLYNANCE</div>
+    <div class="intro-logo" id="oLogo" style="opacity:0"><img src="logo.png" alt="Flynance" class="logo-img" style="height:60px;"></div>
     <div class="intro-divider" id="oDiv" style="opacity:0;margin:20px auto"></div>
     <div class="intro-headline" id="oHead" style="opacity:0;font-size:26px">
       Compliant SOA. <span>Under 5 minutes.</span><br>Around $20.
     </div>
     <div class="intro-sub" id="oSub" style="opacity:0;margin-top:14px">Beta access available now — no seat fees, no lock-in.</div>
-    <div style="display:flex;gap:14px;margin-top:28px;align-items:center;">
-      <button class="play-btn" id="oBtn" style="opacity:0;margin-top:0" onclick="window.open('https://flynance.com.au','_blank')">
-        Visit flynance.com.au →
-      </button>
-      <button class="play-btn" id="rewatchBtn" style="opacity:0;pointer-events:none;margin-top:0;background:transparent;border:1.5px solid var(--gold);color:var(--gold);transition:opacity 0.6s" onclick="rewatchDemo()">
-        ↺ &nbsp;Watch again
-      </button>
-    </div>
+    <button class="outro-btn outro-btn-outline" id="rewatchBtn" style="opacity:0;pointer-events:none;margin-top:28px" onclick="rewatchDemo()">
+      ↺ &nbsp;Watch again
+    </button>
   </div>
 
-</div><!-- /scene -->
+    </div><!-- /scene -->
+  </div><!-- /demo-modal -->
+</div><!-- /demo-overlay -->
 
 <script>
+  function closeModal() {
+    document.getElementById('demoOverlay').classList.add('hidden');
+  }
+
   let currentSlide = 0;
-  const slides = ['slide-intro','slide1','slide2','slide3','slide-outro'];
+  const slides = ['slide-intro','slide1','slide2','slide3','slide4','slide-outro'];
   let autoTimer = null;
   let demoRunning = false;
 
@@ -939,7 +1275,8 @@
       if(currentSlide === 1) animateStep1();
       if(currentSlide === 2) animateStep2();
       if(currentSlide === 3) animateStep3();
-      if(currentSlide === 4) animateOutro();
+      if(currentSlide === 4) animateStep4();
+      if(currentSlide === 5) animateOutro();
     }
   }
 
@@ -1087,13 +1424,30 @@
     setTimeout(() => document.getElementById('exportRow').classList.add('show'), 1500);
     autoTimer = setTimeout(() => {
       showSlide(4);
+      animateStep4();
+    }, 4000);
+  }
+
+  // ── STEP 4 ANIMATION ──
+  function animateStep4() {
+    setTimeout(() => document.getElementById('soaCard1').classList.add('show'), 200);
+    setTimeout(() => document.getElementById('soaCard2').classList.add('show'), 500);
+    setTimeout(() => document.getElementById('editToolbar').classList.add('show'), 700);
+    setTimeout(() => document.getElementById('editBottomBar').classList.add('show'), 900);
+    setTimeout(() => document.getElementById('editedBadge').classList.add('show'), 1100);
+    autoTimer = setTimeout(() => {
+      showSlide(5);
       animateOutro();
-    }, 4500);
+    }, 5000);
   }
 
   function rewatchDemo() {
     // Reset all animated elements
     ['rec1','rec2','compBanner','exportRow'].forEach(id => {
+      const el = document.getElementById(id);
+      if(el) el.classList.remove('show');
+    });
+    ['soaCard1','soaCard2','editToolbar','editBottomBar','editedBadge'].forEach(id => {
       const el = document.getElementById(id);
       if(el) el.classList.remove('show');
     });
@@ -1119,7 +1473,7 @@
     document.getElementById('rewatchBtn').style.opacity = '0';
     document.getElementById('rewatchBtn').style.pointerEvents = 'none';
     // Reset outro elements
-    ['oLogo','oDiv','oHead','oSub','oBtn'].forEach(id => {
+    ['oLogo','oDiv','oHead','oSub'].forEach(id => {
       const el = document.getElementById(id);
       if(el) { el.style.animation = 'none'; el.style.opacity = '0'; }
     });
@@ -1136,7 +1490,6 @@
       {id:'oDiv', delay:600},
       {id:'oHead', delay:900},
       {id:'oSub', delay:1300},
-      {id:'oBtn', delay:1700},
     ];
     els.forEach(({id, delay}) => {
       setTimeout(() => {
